@@ -1,6 +1,12 @@
 services:
   backend:
     build: ./backend
+    init: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       DATABASE_PATH: /data/catalog.sqlite3
       DJANGO_DEBUG: "false"
@@ -11,13 +17,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
   frontend:
     build: ./frontend
+    init: true
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8080:80"
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 volumes:
   catalog-data:
-

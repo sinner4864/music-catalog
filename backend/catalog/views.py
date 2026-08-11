@@ -1,5 +1,5 @@
 from django.db.models import Prefetch, Q
-from rest_framework import status, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Album, AlbumTrack, Artist, Song
@@ -24,6 +24,8 @@ class AlbumViewSet(viewsets.ModelViewSet):
             Prefetch("tracks", AlbumTrack.objects.select_related("song").order_by("track_number"))
         )
         search = self.request.query_params.get("search", "").strip()
+        if len(search) > 100:
+            raise serializers.ValidationError({"search": "Поисковый запрос не должен превышать 100 символов."})
         if search:
             qs = qs.filter(Q(title__icontains=search) | Q(artist__name__icontains=search) | Q(tracks__song__title__icontains=search)).distinct()
         return qs
@@ -42,4 +44,3 @@ class AlbumViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         track.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-

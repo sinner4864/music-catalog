@@ -15,6 +15,22 @@
 - Docker Compose + nginx;
 - Django API tests и GitHub Actions.
 
+## Безопасность
+
+Проект рассчитан на локальный запуск тестового задания. API намеренно не имеет
+регистрации и аутентификации, поэтому его нельзя публиковать в интернет как
+многопользовательский сервис без добавления авторизации.
+
+- контейнер backend работает без root и без Linux capabilities;
+- nginx выставляет CSP, anti-clickjacking и MIME-sniffing заголовки;
+- API ограничен 120 анонимными запросами в минуту;
+- секрет Django генерируется при запуске и не хранится в репозитории;
+- `pip-audit`, Bandit и `npm audit` выполняются в CI;
+- версии GitHub Actions и базовые Docker-образы закреплены по commit/digest.
+
+Для внешнего HTTPS-развёртывания задайте постоянный `DJANGO_SECRET_KEY`, точный
+`DJANGO_ALLOWED_HOSTS` и настройте TLS на reverse proxy.
+
 ## Быстрый запуск
 
 Нужен Docker с Compose plugin:

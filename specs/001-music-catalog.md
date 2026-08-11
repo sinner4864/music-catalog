@@ -47,5 +47,6 @@ Errors use `{field: [messages]}` and standard HTTP status codes.
 - Django ORM and migrations; SQLite for a zero-config demo.
 - Vue 3 Composition API, Vite and Pinia.
 - Backend and frontend tests run in CI.
+- Dependency and static security scans run in CI.
+- The local API is rate-limited and responses include browser security headers.
 - The complete application starts with `docker compose up --build`.
-
