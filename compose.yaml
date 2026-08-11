@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_PATH: /data/catalog.sqlite3
+      DJANGO_DEBUG: "false"
+    volumes:
+      - catalog-data:/data
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+volumes:
+  catalog-data:
+
