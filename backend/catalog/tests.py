@@ -1,4 +1,5 @@
 from datetime import date
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -7,6 +8,7 @@ from .models import Album, Artist, Song
 
 class CatalogApiTests(APITestCase):
     def setUp(self):
+        cache.clear()
         self.artist = Artist.objects.create(name="Massive Attack")
         self.album = Album.objects.create(title="Mezzanine", artist=self.artist, release_year=1998)
 
@@ -29,6 +31,17 @@ class CatalogApiTests(APITestCase):
         response = self.client.post(reverse("album-add-track", args=[self.album.pk]), {"song_title": "Teardrop", "track_number": 1})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_duplicate_artist_is_rejected_case_insensitively(self):
+        response = self.client.post(reverse("artist-list"), {"name": "massive attack"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_track_number_above_database_limit_is_rejected(self):
+        response = self.client.post(
+            reverse("album-add-track", args=[self.album.pk]),
+            {"song_title": "Angel", "track_number": 32768},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_future_release_year_is_rejected(self):
         response = self.client.post(reverse("album-list"), {"title": "Future", "artist": self.artist.pk, "release_year": date.today().year + 1})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -38,3 +51,13 @@ class CatalogApiTests(APITestCase):
         response = self.client.get(reverse("album-list"), {"search": "tear"})
         self.assertEqual(len(response.data), 1)
 
+    def test_search_length_is_limited(self):
+        response = self.client.get(reverse("album-list"), {"search": "x" * 101})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_anonymous_api_is_rate_limited(self):
+        for _ in range(120):
+            response = self.client.get(reverse("album-list"))
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(reverse("album-list"))
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

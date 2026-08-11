@@ -27,7 +27,7 @@ the same track number in one album.
 3. A user can create an album for an existing artist; invalid years are rejected.
 4. A user can add a new or existing song to an album at a free positive track
    number; conflicts are rejected.
-5. A user can remove a track, album or artist after confirmation.
+5. A user can remove a track or album from the catalogue after confirmation.
 6. Loading and API errors are visible and do not destroy the current page state.
 7. `GET /api/albums/?search=...` filters by album, artist or song title.
 
@@ -47,5 +47,6 @@ Errors use `{field: [messages]}` and standard HTTP status codes.
 - Django ORM and migrations; SQLite for a zero-config demo.
 - Vue 3 Composition API, Vite and Pinia.
 - Backend and frontend tests run in CI.
+- Dependency and static security scans run in CI.
+- The local API is rate-limited and responses include browser security headers.
 - The complete application starts with `docker compose up --build`.
-
